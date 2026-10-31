@@ -15,8 +15,9 @@ export default defineConfig({
         lang: 'pt-BR',
         start_url: '/',
         display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#ffffff',
+        // cor das barras do sistema no app instalado (Android): neutra, combina com claro e escuro
+        background_color: '#09090b',
+        theme_color: '#09090b',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
