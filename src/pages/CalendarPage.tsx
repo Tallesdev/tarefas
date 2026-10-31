@@ -14,6 +14,7 @@ import { ptBR } from 'date-fns/locale'
 import { useMemo, useRef, useState, type PointerEvent } from 'react'
 import EmptyState from '../components/EmptyState'
 import Icon from '../components/Icon'
+import PageHeader from '../components/PageHeader'
 import QuickAdd from '../components/QuickAdd'
 import TaskItem from '../components/TaskItem'
 import { useStore } from '../data/store'
@@ -86,30 +87,37 @@ export default function CalendarPage() {
     .filter((t) => !t.parent_id && t.due_date === selected)
     .sort((a, b) => Number(a.is_done) - Number(b.is_done) || (a.due_time ?? '99').localeCompare(b.due_time ?? '99'))
 
+  const monthKey = toISODate(month).slice(0, 7)
+  const monthCount = tasks.filter((t) => !t.parent_id && t.due_date?.startsWith(monthKey)).length
   const title = capitalize(format(month, "MMMM 'de' yyyy", { locale: ptBR }))
 
   return (
     <div className="page">
-      <header className="top cal-top">
-        <button className="icon-btn" aria-label="Mês anterior" onClick={() => goMonth(-1)}>
-          <Icon name="chevronLeft" />
-        </button>
-        <h1 className="cal-title">{title}</h1>
-        <button className="icon-btn" aria-label="Próximo mês" onClick={() => goMonth(1)}>
-          <Icon name="chevronRight" />
-        </button>
-        <button
-          className="btn-text today-btn"
-          onClick={() => {
-            const now = startOfMonth(new Date())
-            if (now.getTime() !== month.getTime()) setEnter(now > month ? 'next' : 'prev')
-            setMonth(now)
-            setSelected(todayISO())
-          }}
-        >
-          Hoje
-        </button>
-      </header>
+      <PageHeader
+        title={capitalize(format(month, 'MMMM', { locale: ptBR }))}
+        subtitle={`${format(month, 'yyyy')} · ${monthCount ? `${monthCount} ${monthCount === 1 ? 'tarefa' : 'tarefas'}` : 'nenhuma tarefa'}`}
+        right={
+          <>
+            <button className="icon-btn" aria-label="Mês anterior" onClick={() => goMonth(-1)}>
+              <Icon name="chevronLeft" />
+            </button>
+            <button className="icon-btn" aria-label="Próximo mês" onClick={() => goMonth(1)}>
+              <Icon name="chevronRight" />
+            </button>
+            <button
+              className="btn-text today-btn"
+              onClick={() => {
+                const now = startOfMonth(new Date())
+                if (now.getTime() !== month.getTime()) setEnter(now > month ? 'next' : 'prev')
+                setMonth(now)
+                setSelected(todayISO())
+              }}
+            >
+              Hoje
+            </button>
+          </>
+        }
+      />
 
       <div
         className="cal-swipe"

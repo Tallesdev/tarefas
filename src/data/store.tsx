@@ -5,10 +5,13 @@ import type { Category, Task } from '../lib/types'
 
 type NewTask = Partial<Omit<Task, 'id' | 'user_id' | 'created_at'>> & { title: string }
 
+export type Notice = { text: string; action?: { label: string; run: () => void } }
+
 type Store = {
   ready: boolean
-  error: string | null
-  clearError: () => void
+  notice: Notice | null
+  clearNotice: () => void
+  reportError: (text: string) => void
   categories: Category[]
   tasks: Task[] // inclui subtarefas (parent_id != null)
   addCategory: (name: string) => Promise<void>
@@ -27,7 +30,8 @@ const TASK_COLS =
 
 export function StoreProvider({ userId, children }: { userId: string; children: ReactNode }) {
   const [ready, setReady] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<Notice | null>(null)
+  const setError = useCallback((text: string) => setNotice({ text }), [])
   const [categories, setCategories] = useState<Category[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
 
@@ -167,12 +171,25 @@ export function StoreProvider({ userId, children }: { userId: string; children: 
 
   const deleteTask = useCallback(
     async (id: string) => {
-      const ids = [id, ...tasks.filter((t) => t.parent_id === id).map((t) => t.id)]
+      const removed = tasks.filter((t) => t.id === id || t.parent_id === id)
+      const ids = removed.map((t) => t.id)
       setTasks((x) => x.filter((t) => !ids.includes(t.id)))
       await run(
         supabase.from('tasks').update({ deleted_at: new Date().toISOString() }).in('id', ids),
         'Não foi possível excluir a tarefa.',
       )
+      // subtarefa some em silêncio; tarefa principal ganha "Desfazer"
+      if (removed.find((t) => t.id === id)?.parent_id) return
+      setNotice({
+        text: 'Tarefa excluída',
+        action: {
+          label: 'Desfazer',
+          run: async () => {
+            setTasks((x) => [...x, ...removed])
+            await run(supabase.from('tasks').update({ deleted_at: null }).in('id', ids), 'Não foi possível restaurar.')
+          },
+        },
+      })
     },
     [run, tasks],
   )
@@ -180,8 +197,9 @@ export function StoreProvider({ userId, children }: { userId: string; children: 
   const value = useMemo<Store>(
     () => ({
       ready,
-      error,
-      clearError: () => setError(null),
+      notice,
+      clearNotice: () => setNotice(null),
+      reportError: setError,
       categories,
       tasks,
       addCategory,
@@ -192,7 +210,7 @@ export function StoreProvider({ userId, children }: { userId: string; children: 
       toggleTask,
       deleteTask,
     }),
-    [ready, error, categories, tasks, addCategory, renameCategory, deleteCategory, addTask, updateTask, toggleTask, deleteTask],
+    [ready, notice, setError, categories, tasks, addCategory, renameCategory, deleteCategory, addTask, updateTask, toggleTask, deleteTask],
   )
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>

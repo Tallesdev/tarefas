@@ -31,12 +31,12 @@ export default function Drawer({ open, onClose, activeId, onSelect }: Props) {
     <>
       <div className={`drawer-backdrop ${open ? 'open' : ''}`} onClick={onClose} />
       <aside className={`drawer ${open ? 'open' : ''}`} aria-hidden={!open}>
-        <div className="drawer-brand">To-Do List</div>
+        <div className="drawer-brand"><span className="brand-mark" aria-hidden="true"><Icon name="check" size={16} /></span>Tarefas</div>
 
         <nav className="drawer-list" aria-label="Categorias">
           <button className={`drawer-item ${activeId === 'all' ? 'active' : ''}`} onClick={() => pick('all')}>
             <Icon name="folder" size={18} />
-            <span>Todas</span>
+            <span>Todas as tarefas</span>
             <span className="count">{pending('all')}</span>
           </button>
           {categories.map((c) => (
@@ -58,18 +58,27 @@ export default function Drawer({ open, onClose, activeId, onSelect }: Props) {
         </nav>
 
         <div className="drawer-footer">
-          <button
-            className="drawer-item"
-            onClick={() => {
-              onClose()
-              navigate('/sugestoes')
-            }}
-          >
-            <Icon name="pencil" size={18} />
-            <span>Sugestões de tarefas</span>
-          </button>
-          <div className="soon">Hábitos e Foco chegam na próxima etapa.</div>
-          <button className="drawer-item" onClick={() => supabase.auth.signOut()}>
+          {(
+            [
+              ['/habitos', 'target', 'Hábitos'],
+              ['/foco', 'timer', 'Foco'],
+              ['/sugestoes', 'clipboard', 'Sugestões de tarefas'],
+              ['/ajustes', 'gear', 'Ajustes'],
+            ] as const
+          ).map(([to, icon, label]) => (
+            <button
+              key={to}
+              className="drawer-item"
+              onClick={() => {
+                onClose()
+                navigate(to)
+              }}
+            >
+              <Icon name={icon} size={18} />
+              <span>{label}</span>
+            </button>
+          ))}
+          <button className="drawer-item muted" onClick={() => supabase.auth.signOut()}>
             <Icon name="logout" size={18} />
             <span>Sair</span>
           </button>

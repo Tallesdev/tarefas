@@ -196,6 +196,12 @@ export default function TaskDetailPage() {
           />
         </label>
 
+        {!task.is_done && (
+          <button className="btn-secondary" onClick={() => navigate(`/foco?tarefa=${task.id}`)}>
+            <Icon name="timer" size={18} /> Focar nesta tarefa
+          </button>
+        )}
+
         <button
           className="btn-delete"
           onClick={async () => {

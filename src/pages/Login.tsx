@@ -46,8 +46,8 @@ export default function Login() {
           <path d="M5 12l5 5L20 7" />
         </svg>
       </div>
-      <h1>To-Do List</h1>
-      <p className="login-sub">Suas tarefas em todos os aparelhos.</p>
+      <h1>Tarefas</h1>
+      <p className="login-sub">Tarefas, hábitos e foco em um só lugar.</p>
 
       <div className="segmented" role="tablist">
         <button role="tab" aria-selected={mode === 'entrar'} className={mode === 'entrar' ? 'on' : ''} onClick={() => setMode('entrar')}>

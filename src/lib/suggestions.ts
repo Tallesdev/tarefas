@@ -45,6 +45,11 @@ export const PACKS: { id: PackId; name: string; items: string[] }[] = [
 ]
 
 export type Settings = {
+  theme?: import('./theme').ThemeMode
+  accent?: import('./theme').Accent
+  timezone?: string
+  focusMinutes?: number
+  breakMinutes?: number
   packs?: PackId[]
   customSuggestions?: string[]
   hiddenSuggestions?: string[]

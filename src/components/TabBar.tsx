@@ -1,21 +1,39 @@
 import { NavLink } from 'react-router-dom'
-import Icon from './Icon'
+import Icon, { type IconName } from './Icon'
+
+const MAIN: [string, IconName, string][] = [
+  ['/', 'tasks', 'Tarefas'],
+  ['/calendario', 'calendar', 'Calendário'],
+  ['/habitos', 'target', 'Hábitos'],
+  ['/meus', 'user', 'Meus'],
+]
+// no computador a barra vira menu lateral e mostra também estes
+const EXTRA: [string, IconName, string][] = [
+  ['/foco', 'timer', 'Foco'],
+  ['/ajustes', 'gear', 'Ajustes'],
+]
 
 export default function TabBar() {
   return (
     <nav className="tabbar" aria-label="Navegação principal">
-      <NavLink to="/" end className="tab">
-        <Icon name="tasks" />
-        <span>Tarefas</span>
-      </NavLink>
-      <NavLink to="/calendario" className="tab">
-        <Icon name="calendar" />
-        <span>Calendário</span>
-      </NavLink>
-      <NavLink to="/meus" className="tab">
-        <Icon name="user" />
-        <span>Meus</span>
-      </NavLink>
+      <div className="tabbar-brand">
+        <span className="brand-mark" aria-hidden="true">
+          <Icon name="check" size={16} />
+        </span>
+        Tarefas
+      </div>
+      {MAIN.map(([to, icon, label]) => (
+        <NavLink key={to} to={to} end={to === '/'} className="tab">
+          <Icon name={icon} />
+          <span>{label}</span>
+        </NavLink>
+      ))}
+      {EXTRA.map(([to, icon, label]) => (
+        <NavLink key={to} to={to} className="tab extra">
+          <Icon name={icon} />
+          <span>{label}</span>
+        </NavLink>
+      ))}
     </nav>
   )
 }

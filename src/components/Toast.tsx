@@ -2,16 +2,26 @@ import { useEffect } from 'react'
 import { useStore } from '../data/store'
 
 export default function Toast() {
-  const { error, clearError } = useStore()
+  const { notice, clearNotice } = useStore()
   useEffect(() => {
-    if (!error) return
-    const t = setTimeout(clearError, 5000)
+    if (!notice) return
+    const t = setTimeout(clearNotice, notice.action ? 6000 : 4000)
     return () => clearTimeout(t)
-  }, [error, clearError])
-  if (!error) return null
+  }, [notice, clearNotice])
+  if (!notice) return null
   return (
-    <div className="toast" role="alert" onClick={clearError}>
-      {error}
+    <div className="toast" role="status">
+      <span>{notice.text}</span>
+      {notice.action && (
+        <button
+          onClick={() => {
+            notice.action!.run()
+            clearNotice()
+          }}
+        >
+          {notice.action.label}
+        </button>
+      )}
     </div>
   )
 }

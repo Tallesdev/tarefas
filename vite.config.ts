@@ -7,16 +7,16 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'push-sw.js'],
       manifest: {
-        name: 'To-Do List',
+        name: 'Tarefas',
         short_name: 'Tarefas',
         description: 'Tarefas, calendário e hábitos',
         lang: 'pt-BR',
         start_url: '/',
         display: 'standalone',
-        background_color: '#f4f7fb',
-        theme_color: '#2d7ff9',
+        background_color: '#ffffff',
+        theme_color: '#ffffff',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -27,6 +27,8 @@ export default defineConfig({
         navigateFallback: '/index.html',
         // dados do Supabase sempre vêm da rede; o app (HTML/JS/CSS) fica em cache
         navigateFallbackDenylist: [/^\/auth/],
+        // recebe e mostra as notificações de lembrete
+        importScripts: ['push-sw.js'],
       },
     }),
   ],
