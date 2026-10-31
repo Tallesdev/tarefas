@@ -155,6 +155,8 @@ export default function CalendarPage() {
               onClick={() => {
                 setSelected(iso)
                 if (!isSameMonth(d, month)) goMonth(d > month ? 1 : -1)
+                // tocar no dia já abre a criação de tarefa para ele
+                setAdding(true)
               }}
             >
               <span>{format(d, 'd')}</span>
@@ -174,7 +176,7 @@ export default function CalendarPage() {
             ))}
           </ul>
         ) : (
-          <EmptyState title="Dia livre" hint="Toque em + para planejar algo para este dia." />
+          <EmptyState title="Dia livre" hint="Toque no dia ou em + para planejar algo." />
         )}
       </main>
 
