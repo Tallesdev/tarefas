@@ -66,6 +66,7 @@ button:disabled { cursor: default; }
   gap: 8px;
   padding: 10px 12px;
   background: color-mix(in srgb, var(--bg) 92%, transparent);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 .content { padding: 4px 16px 0; }
@@ -230,6 +231,7 @@ button:disabled { cursor: default; }
   padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   animation: up 0.2s ease-out;
 }
+.sheet.kb-open { padding-bottom: 12px; border-radius: 20px 20px 0 0; }
 .qa-row { display: flex; align-items: center; gap: 6px; }
 .qa-input {
   flex: 1;
@@ -545,4 +547,9 @@ button:disabled { cursor: default; }
   color: var(--bg);
   font-size: 0.92rem;
   box-shadow: var(--shadow);
+}
+
+/* iPhone: campos com fonte menor que 16px fazem o Safari dar zoom ao tocar */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea, .pill-select select, .row input, .row select { font-size: 16px; }
 }

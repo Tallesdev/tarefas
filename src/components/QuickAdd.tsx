@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { dueLabel, parseSmart } from '../lib/dates'
 import { useStore } from '../data/store'
+import { useKeyboardInset } from '../lib/useKeyboardInset'
 import Icon from './Icon'
 
 type Props = {
@@ -32,6 +33,7 @@ export default function QuickAdd({ open, onClose, defaultCategoryId = null, defa
   const [listening, setListening] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const Speech = getSpeech()
+  const keyboard = useKeyboardInset(open)
 
   useEffect(() => {
     if (open) {
@@ -69,9 +71,9 @@ export default function QuickAdd({ open, onClose, defaultCategoryId = null, defa
   if (!open) return null
 
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
+    <div className="sheet-backdrop" onClick={onClose} style={keyboard ? { paddingBottom: keyboard } : undefined}>
       <form
-        className="sheet quick-add"
+        className={`sheet quick-add ${keyboard ? 'kb-open' : ''}`}
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault()
