@@ -362,6 +362,13 @@ button:disabled { cursor: default; }
   border: 1px solid var(--line);
   border-radius: 18px;
 }
+.cal-swipe { touch-action: pan-y; overflow: hidden; user-select: none; -webkit-user-select: none; }
+.cal-grid { transition: transform 0.2s ease-out, opacity 0.2s; }
+.cal-grid.dragging { transition: none; }
+.cal-grid.enter-next { animation: cal-from-right 0.22s ease-out; }
+.cal-grid.enter-prev { animation: cal-from-left 0.22s ease-out; }
+@keyframes cal-from-right { from { transform: translateX(40%); opacity: 0; } }
+@keyframes cal-from-left { from { transform: translateX(-40%); opacity: 0; } }
 .cal-week { text-align: center; font-size: 0.75rem; color: var(--muted); padding-bottom: 6px; }
 .cal-day {
   position: relative;

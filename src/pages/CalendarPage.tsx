@@ -11,7 +11,7 @@ import {
   startOfWeek,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState, type PointerEvent } from 'react'
 import EmptyState from '../components/EmptyState'
 import Icon from '../components/Icon'
 import QuickAdd from '../components/QuickAdd'
@@ -26,6 +26,44 @@ export default function CalendarPage() {
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
   const [selected, setSelected] = useState(todayISO())
   const [adding, setAdding] = useState(false)
+  // arrastar para o lado troca o mês
+  const [dragX, setDragX] = useState(0)
+  const [enter, setEnter] = useState<'next' | 'prev' | null>(null)
+  const swipe = useRef({ x: 0, y: 0, t: 0, axis: null as 'x' | 'y' | null, active: false, moved: false })
+
+  const goMonth = (dir: 1 | -1) => {
+    setMonth((m) => addMonths(m, dir))
+    setEnter(dir === 1 ? 'next' : 'prev')
+  }
+
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    swipe.current = { x: e.clientX, y: e.clientY, t: Date.now(), axis: null, active: true, moved: false }
+  }
+  const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    const s = swipe.current
+    if (!s.active) return
+    const dx = e.clientX - s.x
+    const dy = e.clientY - s.y
+    if (!s.axis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+      s.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
+      if (s.axis === 'x') e.currentTarget.setPointerCapture(e.pointerId)
+    }
+    if (s.axis === 'x') {
+      s.moved = true
+      setDragX(dx)
+    }
+  }
+  const onPointerEnd = (e: PointerEvent<HTMLDivElement>) => {
+    const s = swipe.current
+    if (!s.active) return
+    s.active = false
+    if (s.axis === 'x') {
+      const dx = e.clientX - s.x
+      const fast = Math.abs(dx) > 30 && Date.now() - s.t < 250
+      if (Math.abs(dx) > 70 || fast) goMonth(dx < 0 ? 1 : -1)
+    }
+    setDragX(0)
+  }
 
   const days = useMemo(
     () => eachDayOfInterval({ start: startOfWeek(startOfMonth(month)), end: endOfWeek(endOfMonth(month)) }),
@@ -53,17 +91,19 @@ export default function CalendarPage() {
   return (
     <div className="page">
       <header className="top cal-top">
-        <button className="icon-btn" aria-label="Mês anterior" onClick={() => setMonth((m) => addMonths(m, -1))}>
+        <button className="icon-btn" aria-label="Mês anterior" onClick={() => goMonth(-1)}>
           <Icon name="chevronLeft" />
         </button>
         <h1 className="cal-title">{title}</h1>
-        <button className="icon-btn" aria-label="Próximo mês" onClick={() => setMonth((m) => addMonths(m, 1))}>
+        <button className="icon-btn" aria-label="Próximo mês" onClick={() => goMonth(1)}>
           <Icon name="chevronRight" />
         </button>
         <button
           className="btn-text today-btn"
           onClick={() => {
-            setMonth(startOfMonth(new Date()))
+            const now = startOfMonth(new Date())
+            if (now.getTime() !== month.getTime()) setEnter(now > month ? 'next' : 'prev')
+            setMonth(now)
             setSelected(todayISO())
           }}
         >
@@ -71,7 +111,28 @@ export default function CalendarPage() {
         </button>
       </header>
 
-      <div className="cal-grid" role="grid" aria-label={title}>
+      <div
+        className="cal-swipe"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
+        onClickCapture={(e) => {
+          // um arrasto não deve selecionar o dia onde o dedo soltou
+          if (swipe.current.moved) {
+            e.stopPropagation()
+            swipe.current.moved = false
+          }
+        }}
+      >
+      <div
+        key={toISODate(month)}
+        className={`cal-grid ${enter ? `enter-${enter}` : ''} ${dragX ? 'dragging' : ''}`}
+        style={dragX ? { transform: `translateX(${dragX * 0.6}px)`, opacity: 1 - Math.min(Math.abs(dragX) / 600, 0.4) } : undefined}
+        onAnimationEnd={() => setEnter(null)}
+        role="grid"
+        aria-label={title}
+      >
         {WEEK.map((w) => (
           <div key={w} className="cal-week">
             {w}
@@ -93,7 +154,7 @@ export default function CalendarPage() {
               ].join(' ')}
               onClick={() => {
                 setSelected(iso)
-                if (!isSameMonth(d, month)) setMonth(startOfMonth(d))
+                if (!isSameMonth(d, month)) goMonth(d > month ? 1 : -1)
               }}
             >
               <span>{format(d, 'd')}</span>
@@ -101,6 +162,7 @@ export default function CalendarPage() {
             </button>
           )
         })}
+      </div>
       </div>
 
       <main className="content cal-list">
