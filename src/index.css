@@ -232,6 +232,33 @@ button:disabled { cursor: default; }
   animation: up 0.2s ease-out;
 }
 .sheet.kb-open { padding-bottom: 12px; border-radius: 20px 20px 0 0; }
+.suggestions { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 12px; padding: 0 16px; }
+.suggestions::-webkit-scrollbar { display: none; }
+.sug {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.sug:active { background: var(--surface-2); }
+.sug.edit { color: var(--primary); border-style: dashed; font-weight: 600; }
+.page-title { margin: 0; font-size: 1.2rem; font-weight: 700; }
+.pack-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.pack-list .chip { display: inline-flex; align-items: center; gap: 4px; }
+.sug-add { display: flex; gap: 8px; margin: 12px 0 4px; }
+.sug-add .send-btn { flex-shrink: 0; }
+.sug-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.sug-list li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+.sug-list li > span:first-child { flex: 1; }
+.sug-tag { font-size: 0.75rem; padding: 1px 8px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+.restore { margin-top: 8px; padding-left: 0; }
 .qa-row { display: flex; align-items: center; gap: 6px; }
 .qa-input {
   flex: 1;

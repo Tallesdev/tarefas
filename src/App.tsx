@@ -2,10 +2,12 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import TabBar from './components/TabBar'
 import Toast from './components/Toast'
 import { AuthProvider, useAuth } from './data/auth'
+import { SettingsProvider } from './data/settings'
 import { StoreProvider } from './data/store'
 import CalendarPage from './pages/CalendarPage'
 import Login from './pages/Login'
 import MePage from './pages/MePage'
+import SuggestionsPage from './pages/SuggestionsPage'
 import TaskDetailPage from './pages/TaskDetailPage'
 import TasksPage from './pages/TasksPage'
 
@@ -24,6 +26,7 @@ function Gate() {
   if (!session) return <Login />
   return (
     <StoreProvider userId={session.user.id}>
+      <SettingsProvider userId={session.user.id}>
       <Routes>
         <Route element={<WithTabs />}>
           <Route path="/" element={<TasksPage />} />
@@ -31,9 +34,11 @@ function Gate() {
           <Route path="/meus" element={<MePage />} />
         </Route>
         <Route path="/tarefa/:id" element={<TaskDetailPage />} />
+        <Route path="/sugestoes" element={<SuggestionsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toast />
+      </SettingsProvider>
     </StoreProvider>
   )
 }

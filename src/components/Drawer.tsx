@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../data/store'
 import type { Category } from '../lib/types'
@@ -14,6 +15,7 @@ type Props = {
 
 export default function Drawer({ open, onClose, activeId, onSelect }: Props) {
   const { categories, tasks, addCategory, renameCategory, deleteCategory } = useStore()
+  const navigate = useNavigate()
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<Category | null>(null)
 
@@ -56,6 +58,16 @@ export default function Drawer({ open, onClose, activeId, onSelect }: Props) {
         </nav>
 
         <div className="drawer-footer">
+          <button
+            className="drawer-item"
+            onClick={() => {
+              onClose()
+              navigate('/sugestoes')
+            }}
+          >
+            <Icon name="pencil" size={18} />
+            <span>Sugestões de tarefas</span>
+          </button>
           <div className="soon">Hábitos e Foco chegam na próxima etapa.</div>
           <button className="drawer-item" onClick={() => supabase.auth.signOut()}>
             <Icon name="logout" size={18} />

@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useSettings } from '../data/settings'
+import { visibleSuggestions } from '../lib/suggestions'
 import { dueLabel, parseSmart } from '../lib/dates'
 import { useStore } from '../data/store'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
@@ -34,6 +37,9 @@ export default function QuickAdd({ open, onClose, defaultCategoryId = null, defa
   const inputRef = useRef<HTMLInputElement>(null)
   const Speech = getSpeech()
   const keyboard = useKeyboardInset(open)
+  const { settings } = useSettings()
+  const suggestions = useMemo(() => visibleSuggestions(settings), [settings])
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (open) {
@@ -80,6 +86,34 @@ export default function QuickAdd({ open, onClose, defaultCategoryId = null, defa
           submit()
         }}
       >
+        {!text && suggestions.length > 0 && (
+          <div className="suggestions" aria-label="Sugestões">
+            {suggestions.map((sug) => (
+              <button
+                type="button"
+                key={sug}
+                className="sug"
+                onMouseDown={(e) => e.preventDefault() /* mantém o teclado aberto */}
+                onClick={() => {
+                  setText(sug)
+                  inputRef.current?.focus()
+                }}
+              >
+                {sug}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="sug edit"
+              onClick={() => {
+                onClose()
+                navigate('/sugestoes')
+              }}
+            >
+              <Icon name="pencil" size={14} /> Editar
+            </button>
+          </div>
+        )}
         <div className="qa-row">
           <input
             ref={inputRef}
