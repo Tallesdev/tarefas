@@ -21,6 +21,8 @@ const paths = {
   folder: 'M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z',
   logout: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11',
   pencil: 'M4 20h4L19 9l-4-4L4 16v4Z',
+  clipboard: 'M9 4h6v3H9zM9 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-3M9 13l2 2 4-4',
+  sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8ZM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z',
   subtask: 'M6 4v10a2 2 0 0 0 2 2h10M14 12l4 4-4 4',
 } as const
 

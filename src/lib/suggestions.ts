@@ -59,3 +59,12 @@ export function visibleSuggestions(s: Settings): string[] {
   const all = [...(s.customSuggestions ?? []), ...fromPacks]
   return [...new Set(all)].filter((x) => !hidden.has(x))
 }
+
+// Agrupado para o painel da prancheta: "Suas" primeiro, depois cada perfil escolhido
+export function groupedSuggestions(s: Settings): { title: string; items: string[] }[] {
+  const packs = s.packs ?? DEFAULT_PACKS
+  const hidden = new Set(s.hiddenSuggestions ?? [])
+  const groups = [{ title: 'Suas', items: (s.customSuggestions ?? []).filter((x) => !hidden.has(x)) }]
+  for (const p of PACKS) if (packs.includes(p.id)) groups.push({ title: p.name, items: p.items.filter((x) => !hidden.has(x)) })
+  return groups.filter((g) => g.items.length > 0)
+}

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSettings } from '../data/settings'
-import { visibleSuggestions } from '../lib/suggestions'
+import { groupedSuggestions, visibleSuggestions } from '../lib/suggestions'
+import { smartSuggestions } from '../lib/smart'
 import { dueLabel, parseSmart } from '../lib/dates'
 import { useStore } from '../data/store'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
@@ -29,37 +30,51 @@ const getSpeech = (): SpeechCtor | undefined => {
 }
 
 export default function QuickAdd({ open, onClose, defaultCategoryId = null, defaultDate = null }: Props) {
-  const { categories, addTask } = useStore()
+  const { categories, tasks, addTask } = useStore()
   const [text, setText] = useState('')
   const [categoryId, setCategoryId] = useState<string | null>(defaultCategoryId)
-  const [manualDate, setManualDate] = useState<string | null>(defaultDate)
+  const [pickedDate, setPickedDate] = useState<string | null>(null) // escolhida no seletor: vence tudo
+  const [showTemplates, setShowTemplates] = useState(false)
   const [listening, setListening] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const Speech = getSpeech()
   const keyboard = useKeyboardInset(open)
   const { settings } = useSettings()
-  const suggestions = useMemo(() => visibleSuggestions(settings), [settings])
+  const smart = useMemo(() => (open ? smartSuggestions(tasks, settings.packs) : []), [open, tasks, settings.packs])
+  const suggestions = useMemo(() => {
+    const smartTexts = new Set(smart.map((x) => x.text))
+    return visibleSuggestions(settings).filter((x) => !smartTexts.has(x))
+  }, [settings, smart])
+  const groups = useMemo(() => groupedSuggestions(settings), [settings])
   const navigate = useNavigate()
 
   useEffect(() => {
     if (open) {
       setText('')
       setCategoryId(defaultCategoryId)
-      setManualDate(defaultDate)
+      setPickedDate(null)
+      setShowTemplates(false)
       setTimeout(() => inputRef.current?.focus(), 50)
     }
   }, [open, defaultCategoryId, defaultDate])
 
   const parsed = useMemo(() => parseSmart(text), [text])
-  const due_date = manualDate ?? parsed.due_date
+  // data: escolhida no seletor > escrita no texto ("amanhã") > dia tocado no calendário
+  const due_date = pickedDate ?? parsed.due_date ?? defaultDate
   const label = dueLabel({ due_date, due_time: parsed.due_time })
 
   async function submit() {
-    const title = (manualDate ? text : parsed.title).trim() || text.trim()
+    const title = parsed.title.trim() || text.trim()
     if (!title) return
     await addTask({ title, category_id: categoryId, due_date, due_time: parsed.due_time })
     setText('')
-    setManualDate(defaultDate)
+    setPickedDate(null)
+    inputRef.current?.focus()
+  }
+
+  const applySuggestion = (value: string) => {
+    setText(value)
+    setShowTemplates(false)
     inputRef.current?.focus()
   }
 
@@ -86,32 +101,69 @@ export default function QuickAdd({ open, onClose, defaultCategoryId = null, defa
           submit()
         }}
       >
-        {!text && suggestions.length > 0 && (
-          <div className="suggestions" aria-label="Sugestões">
-            {suggestions.map((sug) => (
-              <button
-                type="button"
-                key={sug}
-                className="sug"
-                onMouseDown={(e) => e.preventDefault() /* mantém o teclado aberto */}
-                onClick={() => {
-                  setText(sug)
-                  inputRef.current?.focus()
-                }}
-              >
-                {sug}
-              </button>
+        {showTemplates && (
+          <div className="templates" aria-label="Modelos de tarefa">
+            {smart.length > 0 && (
+              <section>
+                <h3>
+                  <Icon name="sparkle" size={15} /> Para você
+                </h3>
+                {smart.map((x) => (
+                  <button type="button" key={x.text} className="tpl" onClick={() => applySuggestion(x.text)}>
+                    <span>{x.text}</span>
+                    <small>{x.reason}</small>
+                  </button>
+                ))}
+              </section>
+            )}
+            {groups.map((g) => (
+              <section key={g.title}>
+                <h3>{g.title}</h3>
+                {g.items.map((item) => (
+                  <button type="button" key={item} className="tpl" onClick={() => applySuggestion(item)}>
+                    <span>{item}</span>
+                  </button>
+                ))}
+              </section>
             ))}
             <button
               type="button"
-              className="sug edit"
+              className="btn-text primary tpl-edit"
               onClick={() => {
                 onClose()
                 navigate('/sugestoes')
               }}
             >
-              <Icon name="pencil" size={14} /> Editar
+              <Icon name="pencil" size={14} /> Editar sugestões e perfil
             </button>
+          </div>
+        )}
+
+        {!text && !showTemplates && (smart.length > 0 || suggestions.length > 0) && (
+          <div className="suggestions" aria-label="Sugestões">
+            {smart.map((x) => (
+              <button
+                type="button"
+                key={x.text}
+                className="sug smart"
+                title={x.reason}
+                onMouseDown={(e) => e.preventDefault() /* mantém o teclado aberto */}
+                onClick={() => applySuggestion(x.text)}
+              >
+                <Icon name="sparkle" size={13} /> {x.text}
+              </button>
+            ))}
+            {suggestions.map((sug) => (
+              <button
+                type="button"
+                key={sug}
+                className="sug"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applySuggestion(sug)}
+              >
+                {sug}
+              </button>
+            ))}
           </div>
         )}
         <div className="qa-row">
@@ -151,11 +203,21 @@ export default function QuickAdd({ open, onClose, defaultCategoryId = null, defa
               type="date"
               className="hidden-date"
               value={due_date ?? ''}
-              onChange={(e) => setManualDate(e.target.value || null)}
+              onChange={(e) => setPickedDate(e.target.value || null)}
               aria-label="Data de vencimento"
             />
           </label>
 
+          <button
+            type="button"
+            className={`icon-btn ${showTemplates ? 'on' : ''}`}
+            aria-label="Modelos de tarefa"
+            aria-pressed={showTemplates}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setShowTemplates((v) => !v)}
+          >
+            <Icon name="clipboard" />
+          </button>
           <button type="submit" className="send-btn" disabled={!text.trim()} aria-label="Salvar tarefa">
             <Icon name="send" />
           </button>
